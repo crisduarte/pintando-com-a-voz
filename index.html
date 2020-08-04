@@ -5,8 +5,16 @@
     <meta charset="utf-8">
 
   </head>
+
   <body>
-    <script src="lib/sketch.js"></script>
+    <button id="button">Try it</button>
+
+    <script>
+    document.querySelector('button').addEventListener('click', function() {
+      mic.start();
+    });
+    </script>
+    <script src="sketch.js"></script>
   
 
 </body></html>
