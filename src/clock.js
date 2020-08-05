@@ -11,7 +11,7 @@ function drawClock(x, y, size, msg, maxTime, callback) {
   fill(255, 255, 255, 60);
   ellipseMode(CENTER);
 
-  last_frame = get();
+  //last_frame = get();
   
   if (msg != null) {
     textSize(size / 2.0);

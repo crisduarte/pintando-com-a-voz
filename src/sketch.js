@@ -1,38 +1,37 @@
-var X = 0.0;
-var Y = 0.0;
-var radius = 0.0;
-var clockMaxTime = 2000.0;
+var X;
+var Y;
+var radius;
 var counter = 0;
-var hue2 = 0;
-var mic;
-var last_levels;
+var brush_color;
 var last_frame;
-var touched = false;
+var is_painting;
 
 function setup() {
 
-  createCanvas(windowWidth, windowHeight);
-
-  last_levels = [];
-  mic = new p5.AudioIn();
-  mic.start();
-
-  X = -radius / 2 + 10;
-  Y = height;
-
+  c = createCanvas(windowWidth, windowHeight);
   background(0);
 
-  hue2 = random(255);
-  last_frame = null;
-  counter = 0;
-
-  if (getAudioContext().state !== 'running') {
-
+  // prepare microphone
+  if (!mic_started) {
     textAlign(CENTER);
     fill(255, 255, 255, 60);
     textSize(16);
     text('touch to start microphone', width / 2, height / 2);
   }
+
+  // user gesture to start mic
+  c.mousePressed(mic_start);
+
+  //fft = new p5.FFT();
+
+  Y = height;
+  updRadius();
+  X = -radius / 2 + 10;
+
+  hue2 = random(255);
+  last_frame = null;
+  counter = 0;
+  is_painting = false;
 }
 
 
@@ -41,12 +40,10 @@ function getColor(factor) {
   if (factor < 0) factor = 0;
 
   colorMode(HSB, 255);
-
-  result = color(hue2,
-                 20 + pow(factor + 0.2, 2) * 240,
-                 20 + pow(1 - factor, 2) * 240, 
-                 50);
-
+  result = color(hue(brush_color),
+    20 + pow(factor + 0.2, 2) * 240,
+    20 + pow(1 - factor, 2) * 240,
+    50);
   colorMode(RGB, 255);
   return result;
 }
@@ -66,17 +63,15 @@ function painter(X, Y, radius) {
 function updX(deltaX) {
 
   X += deltaX;
-  
   if (X > (width + radius / 2))
     X = -radius / 2 + 1;
   else if (X < (-radius / 2))
-    X = width + radius / 2;   
+    X = width + radius / 2;
 }
 
 function updY(deltaY) {
 
   Y += deltaY;
-
   if ((Y >= (height - counter)) && (Y > 0))
     Y -= random() * 20.0 - 8.0;
 }
@@ -86,67 +81,41 @@ function updRadius() {
   radius = (height - Y) / 4.0 + width / 6.0;
 }
 
-function mean(x) {
-
-  var res = 0.0;
-
-  if (x.length == 0)
-    return (res);
-
-  for (i = 0; i < x.length; i++)
-    res += x[i];
-
-  return (res / x.length);
-}
-
-function touchStarted() {
-
-  if (getAudioContext().state !== 'running') {
-    background(0);
-    getAudioContext().resume();
-    mic = new p5.AudioIn();
-    mic.start();
-  }
-  
-  touched = true;
-}
-
-function mic_error() {
-  
+function start_paint() {
   background(0);
-  text('failed to start the microphone', width / 2, height / 2);
+  mic_start();
+  is_painting = true;
 }
 
 function draw() {
 
-  if (getAudioContext().state !== 'running') { 
-    if (touched == true) {
-      background(0);
-      drawClock(width / 2, height / 2, 16 * 4, "starting microphone...", 1000, mic_error);
-    }
-    
+  // check for audio mic
+  if (mic_starting())
+    return;
+
+  var level;
+
+  // choose color
+  if (!is_painting) {
+    background(0);
+    level = -map(mic_read_level(50, true), 0.05, 0.3, 
+                 -256 / 2 + 20 / 2, 256 / 2 - 20 / 2);
+    brush_color = pickColor(width / 2, height / 2, 20, level);
+    drawClock(width / 2, height / 2 + 256 / 2 + 66 / 2, 45, 
+              "speak to choose a color...", 6000, start_paint);
     return;
   }
 
-  // compute input mic
-  var level = mic.getLevel(0.0);
-  if (last_levels.length >= 20)
-    last_levels.shift();
-  last_levels.push(level);
-  var value = mean(last_levels) - level;
-
   // paint
   // update X, Y, and radius
-  updX(5.0);
-  updY(value * width / 10);
+  level = -mic_read_level(20, false) * width / 20;
+  updX(width / 160);
+  updY(level);
   updRadius();
   painter(X, Y, radius);
-  
   if (Y > 0) {
-
     drawClock(width - 50, height - 50, 25, "speak...", 1000);
   } else {
-
     drawClock(width - 50, height - 50, 25, "finishing...", 4000, setup);
   }
 
