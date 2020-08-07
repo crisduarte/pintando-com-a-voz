@@ -1,2 +1,5 @@
-# pintando-com-a-voz
-Pintando com a voz é uma obra de arte digital interativa que faz representações de paisagens na medida em que os sons do ambiente são capturados e conduzem o pincel na tela.
+![](src/example1.png | width 800)
+
+"Pintando com a voz" (Painting with voice, in a literal translation) is an interactive digital artwork that makes landscapes using sounds that guides the brush on the canvas.
+
+Authors: Cristiane Duarte Simões and Rolf Simões

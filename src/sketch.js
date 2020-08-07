@@ -1,123 +1,137 @@
-var X;
-var Y;
-var radius;
-var counter = 0;
-var brush_color;
-var last_frame;
-var is_painting;
+var canvas;
+var bar;
+var mic1;
+var phase;
+var brush;
+var layer;
+var timer1;
+var timer2;
+var timer3;
+var timer4;
 
 function setup() {
 
-  c = createCanvas(windowWidth, windowHeight);
-  background(0);
+  canvas = createCanvas(windowWidth, windowHeight);
 
-  // prepare microphone
-  if (!mic_started) {
-    textAlign(CENTER);
-    fill(255, 255, 255, 60);
-    textSize(16);
-    text('touch to start microphone', width / 2, height / 2);
-  }
+  bar = new HueBar(width / 2, height / 2, 20, height / 4, 255, 150);
+  
+  // mic used to pick a color
+  mic1 = new Mic(0, true, 0.015, 0.3, startMicError);
 
-  // user gesture to start mic
-  c.mousePressed(mic_start);
+  // mic used to control brush
+  mic2 = new Mic(50, true, 0.015, 0.5, startMicError);
+
+  // mic must be started by an user gesture
+  canvas.mousePressed(startMicGesture);
+  startMicMsg();
+
+  phase = 0;
+  brush = new Brush();
+  layer = new Layer();
+
+  // timer used to pickColor
+  timer1 = new Timer(15000, startPaint);
+
+  // timer used to finish painting
+  timer2 = new Timer(5000, finishPaint);
+
+  // timer used to contemplation
+  timer3 = new Timer(10000, fadeOut);
+
+  // timer used to fade out
+  timer4 = new Timer(3000, newPaint);
 
   //fft = new p5.FFT();
-
-  Y = height;
-  updRadius();
-  X = -radius / 2 + 10;
-
-  hue2 = random(255);
-  last_frame = null;
-  counter = 0;
-  is_painting = false;
+  //start();
 }
 
-
-function getColor(factor) {
-
-  if (factor < 0) factor = 0;
-
-  colorMode(HSB, 255);
-  result = color(hue(brush_color),
-    20 + pow(factor + 0.2, 2) * 240,
-    20 + pow(1 - factor, 2) * 240,
-    50);
-  colorMode(RGB, 255);
-  return result;
+function startMicGesture() {
+  getAudioContext().resume();
+  canvas.mousePressed(false);
+  background(0);
+  phase = 1;
 }
 
-function painter(X, Y, radius) {
-
+function startMicMsg() {
   push();
-  noStroke();
-  if (last_frame != null)
-    set(0, 0, last_frame);
-  fill(getColor(Y / height - 0.2));
-  ellipse(X, Y, radius, radius);
-  last_frame = get();
+  background(0);
+  textAlign(CENTER);
+  fill(255, 255, 255, 60);
+  textSize(20);
+  text('touch to start microphone', width / 2, height / 2);
   pop();
 }
 
-function updX(deltaX) {
-
-  X += deltaX;
-  if (X > (width + radius / 2))
-    X = -radius / 2 + 1;
-  else if (X < (-radius / 2))
-    X = width + radius / 2;
-}
-
-function updY(deltaY) {
-
-  Y += deltaY;
-  if ((Y >= (height - counter)) && (Y > 0))
-    Y -= random() * 20.0 - 8.0;
-}
-
-function updRadius() {
-
-  radius = (height - Y) / 4.0 + width / 6.0;
-}
-
-function start_paint() {
+function startMicError() {
+  push();
   background(0);
-  mic_start();
-  is_painting = true;
+  textAlign(CENTER);
+  fill(255, 255, 255, 60);
+  textSize(20);
+  text('failed to start the microphone', width / 2, height / 2);
+  pop();
+}
+
+function startPaint() {
+  background(0);
+  brush.setup(bar.hue());
+  phase = 2;
+}
+
+function finishPaint() {
+  layer.imprint();
+  phase = 3;
+}
+
+function fadeOut() {
+  layer.imprint();
+  phase = 4;
+}
+
+function newPaint() {
+  timer1.reset();
+  timer2.reset();
+  timer3.reset();
+  timer4.reset();
+  layer.reset();
+  phase = 1;
 }
 
 function draw() {
-
-  // check for audio mic
-  if (mic_starting())
-    return;
-
-  var level;
-
-  // choose color
-  if (!is_painting) {
-    background(0);
-    level = -map(mic_read_level(50, true), 0.05, 0.3, 
-                 -256 / 2 + 20 / 2, 256 / 2 - 20 / 2);
-    brush_color = pickColor(width / 2, height / 2, 20, level);
-    drawClock(width / 2, height / 2 + 256 / 2 + 66 / 2, 45, 
-              "speak to choose a color...", 6000, start_paint);
-    return;
+  switch (phase) {
+    case 0:
+      // wait mic gesture
+      break;
+    case 1:
+      // pick color
+      background(0);
+      bar.updateSelector(mic1.level() * 10);
+      bar.draw();
+      mic1.drawIcon(width / 2, height / 2 + bar.h + 40, 80);
+      timer1.draw(width / 2, height - 25, 30, " speak to choose a color ");
+      timer1.tick(true);
+      break;
+    case 2:
+      // draw
+      brush.update(mic2.level());
+      layer.imprint();
+      brush.draw();
+      layer.screenshot();
+      mic2.drawIcon(20, height - 25, 20);
+      timer2.draw(width / 2, height - 25, 30, " finishing ");
+      timer2.tick(brush.y < 0);
+      break;
+    case 3:
+      // contemplation
+      timer3.tick(true);
+      break;
+    case 4:
+      // fade out
+      push();
+      fill(0, timer4.current / timer4.total * 400);
+      rect(0, 0, width, height);
+      pop();
+      timer4.tick(true);
+      break;
   }
-
-  // paint
-  // update X, Y, and radius
-  level = -mic_read_level(20, false) * width / 20;
-  updX(width / 160);
-  updY(level);
-  updRadius();
-  painter(X, Y, radius);
-  if (Y > 0) {
-    drawClock(width - 50, height - 50, 25, "speak...", 1000);
-  } else {
-    drawClock(width - 50, height - 50, 25, "finishing...", 4000, setup);
-  }
-
-  counter += 0.2;
 }

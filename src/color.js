@@ -1,25 +1,39 @@
-
-function pickColor(x, y, size, level) {
-  push();
-  stroke(255, 255, 255, 60);
-  rectMode(CENTER);
-  colorMode(HSB, 255);
-  for (i = 0; i < 256; i++) {
-    fill(i, 200, 120);
-    rect(x, y - 256 / 2.0 + i, size, 1);
-  }
-  stroke(255);
-  strokeWeight(2);
-  noFill();
-  rectMode(CENTER);
-  level = max(min(256 / 2 - size / 2, level), -256 / 2 + size / 2);
-  rect(x, y + level, size, size);
+class HueBar {
   
-  var h = Math.round(map(level, -256 / 2 + size / 2, 256 / 2 - size / 2, 0, 255));
-  res = color(h, 200, 120);
-  fill(res);
-  rect(x + size * 4, y, size * 5, size * 5);
-  colorMode(RGB, 255);
-  pop();
-  return res;
+  constructor(x, y, w, h, HSBs, HSBb) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.s = HSBs;
+    this.b = HSBb;
+    this.selector = 0.0;
+  }
+  
+  updateSelector(delta) {
+    this.selector = ((this.selector + delta) % 255);
+  }
+  
+  hue() {
+    return 255 - this.selector;
+  }
+  
+  draw() {
+    push();
+    colorMode(HSB, 255);
+    noStroke();
+    for (var i = 1; i <= 255; i++) {
+      fill(lerpColor(color(0, this.s, this.b), color(254, this.s, this.b), 
+                     (i - 1) / 255));
+      rect(this.x, floor(this.y - this.h / 2 + (i - 1) * this.h / 255),
+           this.w, ceil(this.h / 255));
+    }
+    noFill();
+    stroke(255, 180);
+    strokeWeight(3);
+    rect(this.x, this.y - this.h / 2 + (1 - this.selector / 255) * (this.h - this.w), this.w, this.w);
+    fill(lerpColor(color(0, this.s, this.b), color(254, this.s, this.b), 1 - this.selector / 255));
+    rect(this.x + this.w * 2, this.y -this.h / 2 + this.h * 2 / 7, this.h * 3 / 7, this.h * 3 / 7);
+    pop();
+  }
 }

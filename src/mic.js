@@ -1,55 +1,62 @@
-var mic;
-var mic_started = false;
-var mic_last_levels = [];
+class Mic {
 
-function mic_start(canvas) {
-  
-  getAudioContext().resume();
-  mic = new p5.AudioIn();
-  mic.start();
-  mic_last_levels = [];
-  mic_started = true;
-  background(0);
-}
-
-function mic_starting() {
-  
-  if (getAudioContext().state !== 'running') {
-    if (mic_started) {
-      background(0);
-      drawClock(width / 2, height / 2, 64,
-                "starting microphone...", 1000, mic_error);
-    }
+  constructor(movingAverage, difference, levelMin, levelMax, callbackError) {
+    this.movingAverage = [];
+    while (this.movingAverage.length < movingAverage)
+      this.movingAverage.push(0.0);
+    this.difference = difference;
+    this.levelMin = levelMin;
+    this.levelMax = levelMax;
+    this.device = new p5.AudioIn(callbackError);
+    this.device.start();
   }
-  return (mic == null);
-}
 
-function mic_error() {
-  
-  background(0);
-  text('failed to start the microphone', width / 2, height / 2);
-}
+  enabled() {
+    return (getAudioContext().state == 'running');
+  }
 
-function mic_read_level(last_n, smooth) {
+  reset() {
+    for (var i = 1; i < this.movingAverage.length; i++)
+      this.movingAverage[i] = 0.0;
+  }
 
-  if ((last_n == null) || (last_n < 0))
-    last_n = 0;
-  var level = mic.getLevel();
-  if (mic_last_levels.length > 0 && mic_last_levels.length == last_n)
-    mic_last_levels.shift();
-  if (mic_last_levels.length < last_n)
-    mic_last_levels.push(level);
-  if (smooth)
-    return(_mean(mic_last_levels));
-  return(level - _mean(mic_last_levels));
-}
+  normalize(level) {
+    if (level < this.levelMin)
+      level = this.levelMin;
+    if (level > this.levelMax)
+      level = this.levelMax;
+    level = map(level, this.levelMin, this.levelMax, 0, 1);
+    return level;
+  }
 
-function _mean(x) {
+  level() {
+    if (!this.enabled()) return 0.0;
+    var level = this.normalize(this.device.getLevel());
+    var mean = level;
+    if (this.movingAverage.length) {
+      this.movingAverage.shift();
+      this.movingAverage.push(level);
+      mean = this.movingAverage.reduce((a, b) => a + b, 0) /
+        (this.movingAverage.length || 1);
+      if (this.difference)
+        return level - mean;
+    }
+    return mean;
+  }
 
-  var res = 0.0;
-  if (x.length == 0)
-    return (res);
-  for (i = 0; i < x.length; i++)
-    res += x[i];
-  return (res / x.length);
+  drawIcon(x, y, size) {
+    if (!this.enabled()) return;
+    push();
+    angleMode(RADIANS);
+    var dy = size / 10;
+    var lv_factors = [0.0, 0.15, 0.4, 0.15, 0.0];
+    var level = this.normalize(this.device.getLevel());
+    level = abs(sin(level * TWO_PI)) * size;
+    stroke(255, 60);
+    strokeWeight(size / 10);
+    for (var i = 0; i < lv_factors.length; i++)
+      line(x + size / 4 * i - size / 2, y - dy - level * lv_factors[i],
+        x + size / 4 * i - size / 2, y + dy + level * lv_factors[i]);
+    pop();
+  }
 }
