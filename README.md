@@ -1,4 +1,4 @@
-# Pitando com a voz
+# Pintando com a voz
 
 ![](img/example1.png)
 
