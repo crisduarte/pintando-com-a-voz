@@ -1,6 +1,7 @@
 var canvas;
 var bar;
 var mic1;
+var mic2;
 var phase;
 var brush;
 var layer;
@@ -94,6 +95,8 @@ function newPaint() {
   timer3.reset();
   timer4.reset();
   layer.reset();
+  mic1.reset();
+  mic2.reset();
   phase = 1;
 }
 
