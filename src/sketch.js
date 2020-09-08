@@ -48,11 +48,20 @@ function setup() {
   //start();
 }
 
+//function startMicGesture() {
+//  getAudioContext().resume();
+//  canvas.mousePressed(false);
+//  background(0);
+//  phase = 1;
+//}
+
 function startMicGesture() {
-  getAudioContext().resume();
-  canvas.mousePressed(false);
-  background(0);
-  phase = 1;
+  getAudioContext().resume().then(() => {
+    console.log('Audio Context is now ON');
+    canvas.mousePressed(false);
+    background(0);
+    phase = 1;
+  });
 }
 
 function startMicMsg() {
