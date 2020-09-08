@@ -22,12 +22,12 @@ class HueBar {
     push();
     colorMode(HSB, 255);
     noStroke();
-    //for (var i = 1; i <= 255; i++) {
-    //  fill(lerpColor(color(0, this.s, this.b), color(254, this.s, this.b), 
-    //                 (i - 1) / 255));
-    //  rect(this.x, floor(this.y - this.h / 2 + (i - 1) * this.h / 255),
-    //       this.w, ceil(this.h / 255));
-    //}
+    for (var i = 1; i <= 255; i++) {
+      fill(lerpColor(color(0, this.s, this.b), color(254, this.s, this.b), 
+                     (i - 1) / 255));
+      rect(this.x, floor(this.y - this.h / 2 + (i - 1) * this.h / 255),
+           this.w, ceil(this.h / 255));
+    }
     noFill();
     stroke(255, 180);
     strokeWeight(3);
