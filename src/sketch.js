@@ -12,6 +12,9 @@
 
 function setup() {
 
+  // set pixel resolution
+  pixelDensity(1);
+
   canvas = createCanvas(windowWidth, windowHeight);
 
   bar = new HueBar(width / 2, height / 2, 20, height / 4, 255, 150);
