@@ -1,13 +1,14 @@
 class Mic {
 
-  constructor(movingAverage, difference, levelMin, levelMax, callbackError) {
+  constructor(device, movingAverage, difference, levelMin, levelMax) {
     this.movingAverage = [];
     while (this.movingAverage.length < movingAverage)
       this.movingAverage.push(0.0);
     this.difference = difference;
     this.levelMin = levelMin;
     this.levelMax = levelMax;
-    this.device = new p5.AudioIn(callbackError);
+    //this.device = new p5.AudioIn(callbackError);
+    this.device = device;
     this.device.start();
   }
 

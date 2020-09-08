@@ -1,26 +1,28 @@
-var canvas;
-var bar;
-var mic1;
-var mic2;
-var phase;
-var brush;
-var layer;
-var timer1;
-var timer2;
-var timer3;
-var timer4;
+//var canvas;
+//var bar;
+//var mic1;
+//var mic2;
+//var phase;
+//var brush;
+//var layer;
+//var timer1;
+//var timer2;
+//var timer3;
+//var timer4;
 
 function setup() {
 
   canvas = createCanvas(windowWidth, windowHeight);
 
   bar = new HueBar(width / 2, height / 2, 20, height / 4, 255, 150);
+
+  dev_mic = new p5.AudioIn(startMicError);
   
   // mic used to pick a color
-  mic1 = new Mic(0, true, 0.015, 0.3, startMicError);
+  mic1 = new Mic(dev_mic, 0, true, 0.015, 0.3);
 
   // mic used to control brush
-  mic2 = new Mic(50, true, 0.015, 0.5, startMicError);
+  mic2 = new Mic(dev_mic, 50, true, 0.015, 0.5);
 
   // mic must be started by an user gesture
   canvas.mousePressed(startMicGesture);
