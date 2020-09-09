@@ -38,7 +38,7 @@ class Timer {
     if (angle2 > 1.0) angle2 = 1.0;
     if (msg) {
       textAlign(LEFT, CENTER);
-      textSize(max(16, size * 0.67));
+      textSize(max(20, size * 0.67));
       text(msg, x + size / 2, y);
     }
     arc(x, y, size, size, 
