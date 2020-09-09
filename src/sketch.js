@@ -17,6 +17,11 @@ function setup() {
 
   canvas = createCanvas(windowWidth, windowHeight);
 
+  // set text properties
+  textAlign(CENTER);
+  fill(255, 255, 255, 60);
+  textSize(width * 0.67 / textWidth('this text fits 67% of the canvas width') * textSize());
+
   bar = new HueBar(width / 2, height / 2, 30, height / 4, 255, 150);
 
   dev_mic = new p5.AudioIn(startMicError);
@@ -70,9 +75,9 @@ function startMicGesture() {
 function startMicMsg() {
   push();
   background(0);
-  textAlign(CENTER);
-  fill(255, 255, 255, 60);
-  textSize(20);
+  //textAlign(CENTER);
+  //fill(255, 255, 255, 60);
+  //textSize(20);
   text('touch to start microphone', width / 2, height / 2);
   pop();
 }
@@ -80,9 +85,9 @@ function startMicMsg() {
 function startMicError() {
   push();
   background(0);
-  textAlign(CENTER);
-  fill(255, 255, 255, 60);
-  textSize(20);
+  //textAlign(CENTER);
+  //fill(255, 255, 255, 60);
+  //textSize(20);
   text('failed to start the microphone', width / 2, height / 2);
   pop();
 }
