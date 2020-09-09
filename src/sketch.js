@@ -17,7 +17,7 @@ function setup() {
 
   canvas = createCanvas(windowWidth, windowHeight);
 
-  bar = new HueBar(width / 2, height / 2, 20, height / 4, 255, 150);
+  bar = new HueBar(width / 2, height / 2, 30, height / 4, 255, 150);
 
   dev_mic = new p5.AudioIn(startMicError);
   
